@@ -10,9 +10,13 @@
                 "${file}",
                 "-std=c++11",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}"
+                "${workspaceFolder}/build/${fileBasenameNoExtension}"
             ],
             "group": "build",
+            "options": {
+                // "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}/build"
+            },
             "problemMatcher": [
                 "$gcc"
             ],
@@ -21,7 +25,7 @@
         {
             "label": "Run C++",
             "type": "shell",
-            "command": "${fileDirname}/${fileBasenameNoExtension}",
+            "command": "${workspaceFolder}/build/${fileBasenameNoExtension}",
             "group": {
                 "kind": "test",
                 "isDefault": true
@@ -39,10 +43,11 @@
                 "-std=c++11",
                 "-lstdc++",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}"
+                "${workspaceFolder}/build/${fileBasenameNoExtension}"
             ],
             "options": {
-                "cwd": "${fileDirname}"
+                // "cwd": "${fileDirname}"
+                "cwd": "${workspaceFolder}/build"
             },
             "problemMatcher": [
                 "$gcc"
@@ -63,7 +68,7 @@
                 "${file}",
                 "-std=c++11",
                 "-o",
-                "${fileDirname}/${fileBasenameNoExtension}"
+                "${workspaceFolder}/build/${fileBasenameNoExtension}"
             ],
             "options": {
                 "cwd": "${fileDirname}"
