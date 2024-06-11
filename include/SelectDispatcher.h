@@ -1,41 +1,41 @@
+
 #pragma once
 #include "Channel.h"
 #include "EventLoop.h"
+#include "Dispatcher.h"
 #include <string>
+#include <poll.h>
 
-struct Eventloop;
-// eventloop包含dispatcher和本结构体的init出来的数据块
-class Dispatcher
+
+class SelectDispatcher: public Dispatcher
 {
 private:
     /* data */
 public:
-    Dispatcher(EventLoop *evLoop);
+    SelectDispatcher(Eventloop *evLoop);
     // 析构函数
     // 为什么析构函数是虚函数？
     // 为了能够在子类中释放子类的资源 当父类指针指向子类对象时，
     // delete父类指针时，只会调用父类的析构函数，而不会调用子类的析构函数，所以析构函数需要是虚函数
-    virtual ~Dispatcher();
+    ~SelectDispatcher();
 
     // add  通过evLoop取出当前dispatcher工作所需的数据。比如epoll的epollevent
-    virtual int add();
+    int add() override; // override表示覆盖父类的虚函数，可以使得编译器检查是否真的覆盖了父类的虚函数
 
     // delete
-    virtual int remove();
+    int remove() override;
     // edit
-    virtual int modify();
+    int modify() override;
 
     // 事件监测 超时 s
-    virtual int dispatch(int timeout = 2); // 2s
+    int dispatch(int timeout = 2) override; // 2s
 
-    inline void setChannel(Channel *channel)
-    {
-        m_channel = channel;
-    }
+private:
+    fd_set m_readSet; // set系统固定为1024. 0-1023
+    fd_set m_writeSet;
+    const int m_maxSize = 1024;
 
-protected:
-    /* data */
-    Channel *m_channel;
-    EventLoop *m_evLoop;
-    std::string m_name = std::string(); // 用于标识dispatcher的名字，初始化为空
+    void setFdSet();
+    void clearFdSet();
+
 };

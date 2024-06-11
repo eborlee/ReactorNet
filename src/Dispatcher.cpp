@@ -1,6 +1,6 @@
 #include "../include/Dispatcher.h"
 
-Dispatcher::Dispatcher(Eventloop *evLoop) : m_evLoop(evLoop)
+Dispatcher::Dispatcher(EventLoop *evLoop) : m_evLoop(evLoop)
 {
 }
 

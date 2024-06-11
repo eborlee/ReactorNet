@@ -1,9 +1,11 @@
 #pragma once
+#include <functional>
+
 // #include <stdbool.h> // c++中不需要引入这个头文件
 
 // 定义函数指针
 // typedef int(*handleFunc) (void* arg);
-using handleFunc = int (*)(void *arg);
+// using handleFunc = int (*)(void *arg);
 
 // 定义文件描述符的读写事件，二进制，通过判断位数是1还是0来判断读写事件
 // c++中枚举类型添加了class后变成了强类型枚举，不会隐式转换为整型，以保证类型安全
@@ -20,8 +22,12 @@ class Channel
 {
 
 public:
-    Channel(int fd, int events, handleFunc readFunc, handleFunc writeFunc,
-            handleFunc destroyFunc, void *arg);
+    using handleFunc = std::function<int(void *)>;
+    Channel(int fd, FDEvent event,
+            handleFunc readFunc,
+            handleFunc writeFunc,
+            handleFunc destroyFunc,
+            void *arg);
 
     // 回调函数
     handleFunc readCallback;
@@ -41,9 +47,9 @@ public:
     }
 
     // 获取事件
-    inline int getEvents()
+    inline int getEvent()
     {
-        return m_events;
+        return m_event;
     }
 
     // 获取回调函数的参数
@@ -57,7 +63,7 @@ private:
     // 文件描述符
     int m_fd;
     // 事件
-    int m_events;
+    int m_event; // 原作者这里写的复数，是想表达这个变量可能包含多种事件（由于是按位与操作）
     // 回调函数的参数
-    void *m_arg;
+    void *m_arg; // 好像用于destroy回调的传参，并且这个参数就是TcpConnection对象
 };
