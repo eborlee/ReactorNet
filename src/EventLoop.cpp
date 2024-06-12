@@ -119,8 +119,93 @@ int EventLoop::addTask(Channel *channel, ElemType type)
     return 0;
 }
 
+int EventLoop::processTask()
+{
+    
+    // 取出头节点
+
+    while(!m_taskQueue.empty()){
+        m_mutex.lock();
+        ChannelElement* node = m_taskQueue.front();
+        m_taskQueue.pop();
+        m_mutex.unlock();
+
+        Channel* channel = node->channel;
+        if(node->type == ElemType::ADD){
+            // 添加
+            add(channel);
+        }
+        else if(node->type == ElemType::DELETE){
+            // 删除
+             remove(channel);
+            // 还需要回收channel对象
+            destroyChannel(channel);
+            
+        }
+        else if(node->type == ElemType::MODIFY){
+            // 修改
+             modify(channel);
+        }
+        delete node;
+    }
+    
+    return 0;
+}
+
+int EventLoop::add(Channel *channel)
+{
+     // 将任务节点里的任务添加到dispatcher检测的检测集合里
+    int fd = channel->getSocket();
+
+    // 找到fd对应的数组元素位置，并存储
+    if (m_channels.find(fd) == m_channels.end()){
+        m_channels.insert(std::pair<int, Channel*>(fd, channel));
+        m_dispatcher->setChannel(channel);
+        int ret = m_dispatcher->add();
+        return ret;
+    }
+    return -1;
+}
+
+int EventLoop::remove(Channel *channel)
+{
+    int fd = channel->getSocket();
+    if (m_channels.find(fd) == m_channels.end())
+    {
+        return -1;
+    }
+    m_dispatcher->setChannel(channel);
+    int ret = m_dispatcher->remove();
+	return ret;
+}
+
+int EventLoop::modify(Channel *channel)
+{
+    int fd = channel->getSocket();
+    if (m_channels.find(fd) == m_channels.end())
+    {
+        return -1;
+    }
+    m_dispatcher->setChannel(channel);
+    int ret = m_dispatcher->modify();
+	return ret;
+}
+
 EventLoop::EventLoop() : EventLoop(std::string())
 {
+}
+
+int EventLoop::destroyChannel(Channel *channel)
+{
+    // 删除channel和fd的对应关系
+   	auto it = m_channels.find(channel->getSocket());
+    if (it != m_channels.end())
+    {
+        m_channels.erase(it);
+        close(channel->getSocket());
+        delete channel;
+    }
+    return 0;
 }
 
 int EventLoop::readLocalMessage(void *arg)

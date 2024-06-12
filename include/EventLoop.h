@@ -57,6 +57,11 @@ public:
     static int readLocalMessage(void* arg);
     int readMessage();
 
+    inline std::thread::id getThreadID()
+    {
+        return m_threadID;
+    }
+
 private:
     void EventLoop::taskWakeup();
 
