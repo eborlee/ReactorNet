@@ -1,4 +1,4 @@
-#include "Buffer.h"
+#include "../include/Buffer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/uio.h>
@@ -46,7 +46,7 @@ void Buffer::extendRoom(int size)
         {
             return; // 失败
         }
-        memset(temp + m_capacity, 0, size);
+        memset((char*)temp + m_capacity, 0, size);
         // 更新数据
         m_data = static_cast<char *>(temp);
         m_capacity += size;

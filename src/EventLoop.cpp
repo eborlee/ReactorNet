@@ -10,7 +10,7 @@
 #include "../include/PollDispatcher.h"
 #include "../include/EpollDispatcher.h"
 #include "../include/Channel.h"
-#include "EventLoop.h"
+#include "../include/EventLoop.h"
 
 EventLoop::EventLoop(const std::string threadName)
 {

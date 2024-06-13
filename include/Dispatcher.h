@@ -3,27 +3,15 @@
 #include "EventLoop.h"
 #include <string>
 
-struct Eventloop;
+class EventLoop;
 // eventloop包含dispatcher和本结构体的init出来的数据块
 class Dispatcher
 {
 private:
     /* data */
 public:
-    Dispatcher(EventLoop *evLoop);
-    // 析构函数
-    // 为什么析构函数是虚函数？
-    // 为了能够在子类中释放子类的资源 当父类指针指向子类对象时，
-    // delete父类指针时，只会调用父类的析构函数，而不会调用子类的析构函数，所以析构函数需要是虚函数
-    virtual ~Dispatcher();
-
-    // add  通过evLoop取出当前dispatcher工作所需的数据。比如epoll的epollevent
-    virtual int add();
-
-    // delete
-    virtual int remove();
-    // edit
-    virtual int modify();
+    Dispatcher(EventLoop* evLoop);
+    ~Dispatcher();
 
     // 事件监测 超时 s
     virtual int dispatch(int timeout = 2); // 2s
@@ -32,6 +20,12 @@ public:
     {
         m_channel = channel;
     }
+
+    virtual int add();
+
+    virtual int remove();
+
+    virtual int modify();
 
 protected:
     /* data */

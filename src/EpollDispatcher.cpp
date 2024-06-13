@@ -99,14 +99,16 @@ int EpollDispatcher::dispatch(int timeout = 2){
             continue;
         }
         // 触发文件描述符的读事件
-        if (events& EPOLLIN)
+        if (events & EPOLLIN)
         {
-            eventActivate(evLoop,fd, ReadEvent);
+            m_evLoop->activate(fd, (int)FDEvent::ReadEvent);
+            // eventActivate(evLoop,fd, ReadEvent);
         }
         // 触发文件描述符的读事件
         if (events & EPOLLOUT)
         {
-            eventActivate(evLoop, fd, WriteEvent);
+            m_evLoop->activate(fd, (int)FDEvent::WriteEvent);
+
         }
     }
 } // 2s

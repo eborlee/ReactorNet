@@ -18,7 +18,7 @@ class PollDispatcher: public Dispatcher
 private:
     /* data */
 public:
-    PollDispatcher(Eventloop *evLoop);
+    PollDispatcher(EventLoop *evLoop);
     // 析构函数
     // 为什么析构函数是虚函数？
     // 为了能够在子类中释放子类的资源 当父类指针指向子类对象时，

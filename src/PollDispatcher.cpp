@@ -1,9 +1,9 @@
-#include "PollDispatcher.h"
+#include "../include/PollDispatcher.h"
 #include <poll.h>
 #include <stdlib.h>
 #include <stdio.h>
 
-PollDispatcher::PollDispatcher(Eventloop *evLoop) : Dispatcher(evLoop)
+PollDispatcher::PollDispatcher(EventLoop *evLoop) : Dispatcher(evLoop)
 {
     m_maxfd = 0;
     // 初始化结构体数组
@@ -25,12 +25,12 @@ PollDispatcher::~PollDispatcher()
 int PollDispatcher::add()
 {
     int events = 0;
-    if (m_channel->getEvents() & (int)FDEvent::ReadEvent)
+    if (m_channel->getEvent() & (int)FDEvent::ReadEvent)
     {
         events |= POLLIN;
     }
 
-    if (m_channel->getEvents() & (int)FDEvent::WriteEvent)
+    if (m_channel->getEvent() & (int)FDEvent::WriteEvent)
     {
         events |= POLLOUT;
     }
@@ -57,7 +57,7 @@ int PollDispatcher::remove()
     int i = 0;
     for (; i < m_maxNode; ++i)
     {
-        if (m_fds[i].fd == m_channel->fd)
+        if (m_fds[i].fd == m_channel->getSocket())
         {
             m_fds[i].events = 0;
             m_fds[i].revents = 0;
@@ -122,12 +122,14 @@ int PollDispatcher::dispatch(int timeout)
             // 触发读事件，调用fd对应的读回调
             // 这个读回调是在channel中注册的
             // 因此要找到对应的channel，从channel中进行调用
-            eventActivate(evLoop, m_fds[i].fd, ReadEvent);
+            m_evLoop->activate(m_fds[i].fd, (int)FDEvent::ReadEvent);
+            // eventActivate(evLoop, m_fds[i].fd, ReadEvent);
         }
         if (m_fds[i].revents & POLLOUT)
         {
             // 触发写事件
-            eventActivate(evLoop, m_fds[i].fd, WriteEvent);
+            // eventActivate(evLoop, m_fds[i].fd, WriteEvent);
+            m_evLoop->activate(m_fds[i].fd, (int)FDEvent::WriteEvent);
         }
     }
 }

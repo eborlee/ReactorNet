@@ -1,6 +1,6 @@
-#include "HttpRequest.h"
-#include "Buffer.h"
-#include "HttpResponse.h"
+#include "../include/HttpRequest.h"
+#include "../include/Buffer.h"
+#include "../include/HttpResponse.h"
 #include <string>
 #include <map>
 #include <functional>
@@ -10,6 +10,7 @@
 #include <dirent.h> // Include the necessary header file
 #include <fcntl.h>
 #include <unistd.h>
+#include "../include/Log.h"
 
 HttpRequest::HttpRequest()
 {
@@ -22,8 +23,8 @@ HttpRequest::~HttpRequest()
 
 void HttpRequest::reset()
 {
-    m_curState = HttpProcessState::ParseReqBody;
-    m_method = m_url = m_version = std::abort();
+    m_curState = HttpProcessState::ParseReqLine;
+    m_method = m_url = m_version = std::string();
     m_reqHeaders.clear();
 }
 
@@ -114,6 +115,7 @@ bool HttpRequest::parseHttpRequestHeader(Buffer *readBuf)
             readBuf->readPosIncrease(2);
             // 修改解析状态, 取决于get还是post。如果是get，已经结束了. 暂时忽略post
             setState(HttpProcessState::ParseReqDone);
+            Debug("解析请求头结束, 已设置ParseReqDone标记");
         }
         return true;
     }
@@ -123,6 +125,7 @@ bool HttpRequest::parseHttpRequestHeader(Buffer *readBuf)
 bool HttpRequest::parseHttpRequest(Buffer *readBuf,
                                    HttpResponse *response, Buffer *sendBuf, int socket)
 {
+    Debug("开始解析Http请求...");
     bool flag = true;
     while (m_curState != HttpProcessState::ParseReqDone)
     {
@@ -150,9 +153,10 @@ bool HttpRequest::parseHttpRequest(Buffer *readBuf,
             // 1. 根据解析的原始数据，对请求进行处理
             processHttpRequest(response);
             // 2. 组织响应数据
-            httpResponsePrepareMsg(response, sendBuf, socket);
+            response->prepareMsg(sendBuf, socket);
         }
     }
+    Debug("解析Http请求结束...");
 
     m_curState = HttpProcessState::ParseReqLine; // 还原状态，以便处理第二条及以后的请求。
 
@@ -165,9 +169,10 @@ bool HttpRequest::processHttpRequest(HttpResponse *response)
     {
         // 值相等时返回0
         // 不处理get之外的请求
-        return -1
+        return -1;
     }
     m_url = decodeMsg(m_url); // 覆盖, 因为解码之后一定比utf8格式的短
+    Debug("新的url: %s", m_url.data());
 
     // 处理客户端请求的静态资源 dir or files
     const char *file = NULL;
@@ -188,24 +193,24 @@ bool HttpRequest::processHttpRequest(HttpResponse *response)
     if (ret == -1)
     {
         // 文件不存在 回复 404
-        strcpy(response->fileName, "404.html");
-        response->statusCode = NotFound;
-        strcpy(response->statusMsg, "Not Found");
+        response->setFileName("404.html");
+        response->setStatusCode(StatusCode::NotFound);
         // 响应头
-        httpResponseAddHeader(response, "Content-type", getFileType(".html")); //  getFileType这个函数见之前
+        response->addHeader("Content-type", getFileType(".html"));
+
         response->sendDataFunc = sendFile;                                     //  这个函数见之前
         return 0;
     }
 
-    strcpy(response->fileName, file);
-    response->statusCode = OK;
-    strcpy(response->statusMsg, "OK");
+    response->setFileName(file);
+    response->setStatusCode(StatusCode::OK);
+
     // 判断文件类型
     if (S_ISDIR(st.st_mode))
     {
         //  把这个目录中的内容发送给客户端
         // 响应头
-        httpResponseAddHeader(response, "Content-type", getFileType(".html")); //  getFileType这个函数见之前
+        response->addHeader("Content-type", getFileType(".html")); //  getFileType这个函数见之前
         response->sendDataFunc = sendDir;                                      //  这个函数见之前
         return 0;
     }
@@ -215,9 +220,8 @@ bool HttpRequest::processHttpRequest(HttpResponse *response)
         // 响应头
         char tmp[128];
         sprintf(tmp, "%ld", st.st_size);
-        httpResponseAddHeader(response, "Content-type", getFileType(file)); //  getFileType这个函数见之前
-        httpResponseAddHeader(response, "Content-length", tmp);
-
+        response->addHeader("Content-type", getFileType(file)); //  getFileType这个函数见之前
+        response->addHeader("Content-length", std::to_string(st.st_size));
         response->sendDataFunc = sendFile; //  这个函数见之前
         return 0;
     }
@@ -247,18 +251,18 @@ std::string HttpRequest::decodeMsg(std::string msg)
         }
     }
     // 为什么要添加\0？
-    str.append(1, '\0');
+    // str.append(1, '\0');
     return str;
 }
 
 int HttpRequest::hexToDec(char c)
 {
     // 16进制转10
-    if (c > '0' && c <= '9')
+    if (c >= '0' && c <= '9')
         return c - '0';
-    if (c > 'a' && c <= 'f')
+    if (c >= 'a' && c <= 'f')
         return c - 'a' + 10;
-    if (c > 'A' && c <= 'F')
+    if (c >= 'A' && c <= 'F')
         return c - 'A' + 10;
     return 0;
 }
@@ -357,7 +361,7 @@ const std::string HttpRequest::getFileType(const std::string name)
     return "application/octet-stream"; // 默认的二进制流类型，用于未知文件类型
 }
 
-void HttpRequest::sendDir(const std::string dirName, Buffer *sendBuf, int cfd)
+void HttpRequest::sendDir(const std::string& dirName, Buffer *sendBuf, int cfd)
 {
     char buf[4096] = {0};
     sprintf(buf, "<html><head><title>%s</title></head><body><table>", dirName.data());
@@ -371,7 +375,7 @@ void HttpRequest::sendDir(const std::string dirName, Buffer *sendBuf, int cfd)
         char *name = namelist[i]->d_name;
         struct stat st;
         char subPath[1024] = {0};
-        sprintf(subPath, "%s/%s", dirName, name);
+        sprintf(subPath, "%s/%s", dirName.data(), name);
         stat(subPath, &st);
         // 判断是目录还是文件
         if (S_ISDIR(st.st_mode))

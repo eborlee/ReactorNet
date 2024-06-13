@@ -1,5 +1,6 @@
-#include "ThreadPool.h"
+#include "../include/ThreadPool.h"
 #include <cassert>
+#include "../include/Log.h"
 
 ThreadPool::ThreadPool(EventLoop *mainLoop, int count)
 {
@@ -21,11 +22,13 @@ ThreadPool::~ThreadPool()
 
 void ThreadPool::run()
 {
-    assert(m_isStart);
-    if(m_mainLoop->getThreadID() == std::this_thread::get_id()){
+    m_isStart = true;
+    // assert(m_isStart);
+    if(m_mainLoop->getThreadID() != std::this_thread::get_id()){
+        Debug("ThreadPool Run终止");
         exit(0);
     }
-    m_isStart = true;
+    // m_isStart = true;
     if (m_threadNum>0){
         for(int i=0;i<m_threadNum;++i){
             WorkerThread* subThread = new WorkerThread(i);
@@ -38,7 +41,7 @@ void ThreadPool::run()
 EventLoop *ThreadPool::takeWorkerEventLoop()
 {
     assert(m_isStart);
-    if(m_mainLoop->getThreadID() == std::this_thread::get_id()){
+    if(m_mainLoop->getThreadID() != std::this_thread::get_id()){
         exit(0);
     }
     // 从线程池中找一个子线程，然后取出一个反应堆实例

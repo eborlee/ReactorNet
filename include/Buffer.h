@@ -1,7 +1,7 @@
 #ifndef BUFFER_HPP
 #define BUFFER_HPP
 
-#endif // BUFFER_HPP
+
 
 class Buffer
 {
@@ -52,3 +52,6 @@ private:
     int m_readPos = 0 ;
     int m_writePos = 0;
 };
+
+
+#endif // BUFFER_HPP

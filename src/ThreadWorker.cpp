@@ -1,4 +1,4 @@
-#include "ThreadWorker.h"
+#include "../include/ThreadWorker.h"
 
 WorkerThread::WorkerThread(int index)
 {

@@ -1,8 +1,10 @@
-#include "TcpServer.h"
+#include "../include/TcpServer.h"
+#include "../include/TcpConnection.h"
 #include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <sys/socket.h>
+#include "../include/Log.h"
 
 TcpServer::TcpServer(unsigned short port, int threadNum)
 {
@@ -57,19 +59,22 @@ void TcpServer::setListen()
 
 void TcpServer::run()
 {
-    // Debug("服务器程序启动了")
+    Debug("服务器程序启动了");
     // 启动线程池
     m_threadPool->run();
 
     // 此处声明了lfd被激活的事件类型和回调函数及其参数
     Channel *channel = new Channel(m_lfd, FDEvent::ReadEvent,
-                                   TcpServer::acceptConnection, nullptr, nullptr, this);
+                                   TcpServer::acceptConnection,
+                                    nullptr, nullptr, this);
     // 添加监听描述符的检测任务
     m_mainLoop->addTask(channel, ElemType::ADD);
     // 此时用于监听有无新连接请求的lfd已经被添加到主线程evloop的epoll检测集合里（这个集合也只有这一个待检测的文件描述符
 
+    Debug("运行主线程反应堆...");
     // 启动反应堆模型
     m_mainLoop->run();
+
 }
 
 int TcpServer::acceptConnection(void *arg)
@@ -81,6 +86,6 @@ int TcpServer::acceptConnection(void *arg)
     
     EventLoop *evLoop = server->m_threadPool->takeWorkerEventLoop();
     // 将cfd放到TcpConn中处理
-    tcoConnectionInit(cfd, evLoop);
+    TcpConnection *tcpConn = new TcpConnection(cfd, evLoop);
     return 0;
 }

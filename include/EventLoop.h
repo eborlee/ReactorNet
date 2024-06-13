@@ -62,8 +62,13 @@ public:
         return m_threadID;
     }
 
+    inline std::string getThreadName()
+    {
+        return m_threadName;
+    }
+
 private:
-    void EventLoop::taskWakeup();
+    void taskWakeup();
 
 private:
     bool m_isQuit;

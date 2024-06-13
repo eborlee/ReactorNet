@@ -7,10 +7,12 @@
             "command": "g++",
             "args": [
                 "-g",
-                "${file}",
+                "${workspaceFolder}/src/*.cpp",  // 使用通配符包含所有源文件
+                "${workspaceFolder}/main.cpp",   // 单独添加 main.cpp 文件
                 "-std=c++11",
                 "-o",
-                "${workspaceFolder}/build/${fileBasenameNoExtension}"
+                "${workspaceFolder}/build/${fileBasenameNoExtension}",
+                "-pthread"
             ],
             "group": "build",
             "options": {

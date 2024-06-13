@@ -27,7 +27,7 @@ public:
     int modify() override;
 
     // 事件监测 超时 s
-    int dispatch(int timeout = 2) override; // 2s
+    int dispatch(int timeout) override; // 2s
 
 private:
     const int m_MaxNode = 520;

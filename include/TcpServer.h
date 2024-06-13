@@ -6,7 +6,7 @@
 #include "EventLoop.h"
 #include "ThreadPool.h"
 
-struct TcpServer
+class TcpServer
 {
 public:
     // 初始化

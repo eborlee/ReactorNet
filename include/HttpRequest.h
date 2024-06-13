@@ -66,8 +66,8 @@ public:
     std::string decodeMsg(std::string msg);
 
     const std::string getFileType(const std::string name);
-    void sendDir(const std::string dirName, Buffer *sendBuf, int cfd);
-    void sendFile(const std::string fileName, Buffer *sendBuf, int cfd);
+    static void sendDir(const std::string& dirName, Buffer *sendBuf, int cfd);
+    static void sendFile(const std::string fileName, Buffer *sendBuf, int cfd);
 
     inline void setMethod(std::string method)
     {

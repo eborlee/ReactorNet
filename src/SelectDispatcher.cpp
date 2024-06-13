@@ -1,9 +1,9 @@
-#include "SelectDispatcher.h"
+#include "../include/SelectDispatcher.h"
 #include <sys/select.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-SelectDispatcher::SelectDispatcher(Eventloop *evLoop) : Dispatcher(evLoop)
+SelectDispatcher::SelectDispatcher(EventLoop *evLoop) : Dispatcher(evLoop)
 {
     FD_ZERO(&m_readSet);
     FD_ZERO(&m_writeSet);
@@ -56,10 +56,12 @@ int SelectDispatcher::dispatch(int timeout)
     {		
       // 判断是否被激活
       	if(FD_ISSET(i, &rdtmp)){
-          	eventActivate(evLoop, i, ReadEvent);
+            m_evLoop->activate(i, (int)FDEvent::ReadEvent);
+          	// eventActivate(evLoop, i, ReadEvent);
         }
       	if(FD_ISSET(i, &wrtmp)){
-          	eventActivate(evLoop, i, WriteEvent);
+            m_evLoop->activate(i, (int)FDEvent::WriteEvent);
+          	// eventActivate(evLoop, i, WriteEvent);
         }
 				
     }
