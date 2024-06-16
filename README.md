@@ -37,7 +37,7 @@ MyServer is a high-performance server application designed to handle multiple cl
 1. Clone the repository:
    ```sh
    git clone https://github.com/eborlee/ReactorNet.git
-   cd MyServer
+   cd ReactorNet
 
 2. Build the project using Makefile:
    ```sh
@@ -48,7 +48,7 @@ MyServer is a high-performance server application designed to handle multiple cl
 ## Usage
 1. Run the server:
   ```sh
-  ./build/MyServer
+  ./build/ReactorNet
   ```
 
 2. The server will start and listen for incoming connections.
